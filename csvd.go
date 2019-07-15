@@ -3,36 +3,25 @@ package csvd
 import (
 	"bytes"
 	"encoding/csv"
-	"io"
-	"io/ioutil"
 )
 
-// NewReader returns a csv.Reader with the delimiter detected. As a second argument you
+// DetectDelimiter returns the delimiter. As a second argument you
 // can pass in a *Sniffer instance to use instead of the defaults, this can provide a different
 // set of delimiters to look for.
-func NewReader(r io.Reader, s ...*Sniffer) *csv.Reader {
+func DetectDelimiter(r *bytes.Reader, s ...*Sniffer) rune {
 	var sniffer *Sniffer
 	if len(s) != 0 {
 		sniffer = s[0]
 	} else {
 		sniffer = defaultSniffer()
 	}
-	return newReaderFromSniffer(r, sniffer)
-}
+	csvReader := csv.NewReader(r)
+	csvReader.LazyQuotes = true
+	// The delimiter to start with should be the one chosen by the user
+	csvReader.Comma = sniffer.delimiter
 
-// NewSnifferReader returns a csv.Reader using a provided sniffer.
-func newReaderFromSniffer(r io.Reader, s *Sniffer) *csv.Reader {
-	b, _ := ioutil.ReadAll(r)
-	reader := bytes.NewReader(b)
+	sniffer.analyse(csvReader)
+	r.Seek(0, 0)
 
-	csvReader := csv.NewReader(reader)
-
-	s.analyse(csvReader)
-
-	reader.Seek(0, 0)
-
-	output := csv.NewReader(reader)
-	output.Comma = s.delimiter
-
-	return output
+	return sniffer.delimiter
 }

@@ -1,6 +1,7 @@
 package csvd
 
 import (
+	"bytes"
 	"encoding/csv"
 	"strings"
 	"testing"
@@ -59,7 +60,11 @@ func TestSniff(t *testing.T) {
 		t.Fail()
 	}
 
-	r3 := NewReader(strings.NewReader(csv1))
+	delimiter := DetectDelimiter(bytes.NewReader([]byte(csv1)))
+	r3 := csv.NewReader(strings.NewReader(csv1))
+	r3.LazyQuotes = true
+	r3.Comma = delimiter
+
 	data, _ := r3.ReadAll()
 	if len(data) != 4 {
 		t.Error(len(data))
@@ -67,7 +72,10 @@ func TestSniff(t *testing.T) {
 
 	// Custom sniffer.
 	s := NewSniffer(20, '$')
-	r4 := NewReader(strings.NewReader(csv3), s)
+	delimiter = DetectDelimiter(bytes.NewReader([]byte(csv3)), s)
+	r4 := csv.NewReader(strings.NewReader(csv3))
+	r4.LazyQuotes = true
+	r4.Comma = delimiter
 	data, _ = r4.ReadAll()
 	if len(data) != 4 {
 		t.Error(len(data))

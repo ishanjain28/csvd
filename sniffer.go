@@ -26,10 +26,16 @@ func NewSniffer(sampleSize int, delims ...rune) *Sniffer {
 	for _, d := range delims {
 		delimiterMap[d] = map[int]int{}
 	}
+	defaultDelimiter := ','
+
+	// Choose the first arg in delims as the default delimiter
+	if len(delims) > 0 {
+		defaultDelimiter = delims[0]
+	}
 
 	return &Sniffer{
-		sampleSize:   15,
-		delimiter:    ',',
+		sampleSize:   sampleSize,
+		delimiter:    defaultDelimiter,
 		frequencyMap: delimiterMap,
 	}
 }
@@ -74,13 +80,19 @@ func (s *Sniffer) sniff() rune {
 		}
 	}
 	sort.Sort(ds)
+	if len(ds) == 0 {
+		return ','
+	}
 	s.delimiter = ds[0].delimiter
 	return s.delimiter
 }
 
 func (s *Sniffer) increment(r rune, amount int) {
-	_, ok := s.frequencyMap[r][amount]
+	_, ok := s.frequencyMap[r]
 	if !ok {
+		if _, ok := s.frequencyMap[r][amount]; !ok {
+			s.frequencyMap[r] = make(map[int]int)
+		}
 		s.frequencyMap[r][amount] = 0
 	}
 	s.frequencyMap[r][amount]++

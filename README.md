@@ -12,6 +12,8 @@ This is quite a simple implementation, the following caveats should be considere
 - The whole reader will be read into memory before returning the CSV reader, so it is not suitable for massive CSV's.
 - By default it checks for the following delimiters `, \t ; : |`, pass in a custom `*csvd.Sniffer` to change this.
 - It's not bullet proof! Quick and simple.
+- The default limiter is `,`. It can be changed by calling `NewSniffer`. The first delimiter given to `NewSniffer` is chosen to be the default delimiter.
+
 
 ## Usage
 
